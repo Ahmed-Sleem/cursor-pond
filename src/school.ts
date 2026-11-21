@@ -373,18 +373,33 @@ export class School {
     steering = add(steering, mul(edgeForce, 4.8));
 
     if (this.targetActive && fish.callDelay <= 0) {
-      const toTarget = sub(this.target, fish.position);
-      const distance = length(toTarget);
-      if (distance > 13) {
-        const chasePull =
-          fish.callResponseAge < FISH.callResponse.chaseBoostSeconds
-            ? 3.35
-            : 2.45;
-        steering = add(steering, mul(normalize(toTarget), chasePull));
+      // Three stable personalities keep the group lively instead of stacking on
+      // the pointer: a close follower, a wide orbiter, and a nearby wanderer.
+      const personality = index % 3;
+      const orbitRadius = [22, 72, 118][personality];
+      const orbitSpeed = [0.34, -0.58, 0.22][personality];
+      const targetPull = [2.6, 1.75, 0.9][personality];
+      const orbitPoint = add(
+        this.target,
+        mul(
+          fromAngle(time * orbitSpeed + fish.phaseOffset),
+          orbitRadius,
+        ),
+      );
+      const toOrbit = sub(orbitPoint, fish.position);
+      const distance = length(toOrbit);
+      const orbitDirection = normalize(toOrbit, forward);
+      const arrivalRadius = personality === 0 ? 18 : 30;
+
+      if (distance > arrivalRadius) {
+        steering = add(steering, mul(orbitDirection, targetPull));
       } else {
-        const targetDirection = normalize(toTarget, forward);
-        steering = add(steering, mul(perpendicular(targetDirection), 2.2));
-        steering = add(steering, mul(targetDirection, -0.5));
+        const orbitSign = orbitSpeed < 0 ? -1 : 1;
+        steering = add(
+          steering,
+          mul(perpendicular(orbitDirection), 1.55 * orbitSign),
+        );
+        steering = add(steering, mul(orbitDirection, -0.22));
       }
     }
 
@@ -400,10 +415,12 @@ export class School {
       fish.callResponseAge < chaseDuration;
     if (chasing) {
       const chaseFade = 1 - clamp(fish.callResponseAge / chaseDuration, 0, 1);
+      const personalityBoost = [1, 0.78, 0.5][index % 3];
       return (
         fish.maximumSpeed *
-        (FISH.callResponse.chaseSpeedMultiplier +
-          chaseFade * FISH.callResponse.initialExtraSpeedMultiplier)
+        (1 +
+          (FISH.callResponse.chaseSpeedMultiplier - 1) * personalityBoost +
+          chaseFade * FISH.callResponse.initialExtraSpeedMultiplier * personalityBoost)
       );
     }
 
@@ -411,7 +428,10 @@ export class School {
     if (this.targetActive && fish.callDelay <= 0) {
       const distance = length(sub(this.target, fish.position));
       const urgency = clamp(distance / 105, 0.2, 1);
-      intention = fish.cruiseSpeed + (fish.maximumSpeed - fish.cruiseSpeed) * urgency;
+      const personalityUrgency = [1, 0.72, 0.42][index % 3];
+      intention =
+        fish.cruiseSpeed +
+        (fish.maximumSpeed - fish.cruiseSpeed) * urgency * personalityUrgency;
     }
 
     switch (fish.state) {

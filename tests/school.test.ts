@@ -21,6 +21,17 @@ describe('big-koi school extraction', () => {
     expect(after).toBeGreaterThan(before + 35);
   });
 
+  it('gives the follower, orbiter, and wanderer distinct cursor responses', () => {
+    const school = new School();
+    const target = { x: 480, y: 300 };
+    for (let step = 0; step < 90; step += 1) {
+      if (step % 20 === 0) school.follow(target);
+      school.update(FIXED_STEP, step * FIXED_STEP);
+    }
+    const speeds = school.fish.map(fish => fish.speed);
+    expect(new Set(speeds.map(speed => speed.toFixed(2))).size).toBe(3);
+  });
+
   it('scales fish positions and spines without resetting their state', () => {
     const school = new School();
     const before = { ...school.fish[0].position };
