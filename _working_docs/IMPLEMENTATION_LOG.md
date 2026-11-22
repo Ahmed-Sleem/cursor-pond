@@ -12,3 +12,13 @@
 - Changed cursor response from group convergence to three stable behaviors: close follower, wide counter-orbiting koi, and slower nearby wanderer.
 - Added separate orbit radii, directions, pull strengths, and urgency/speed profiles while retaining natural schooling and spine motion.
 - Added personality-response coverage and reran the full desktop/mobile verification suite.
+
+## 2026-11-22 — Glyphmix fish presets and behavior audit
+- Added a responsive glass toolbar with all eight Glyphmix presets, None, and cell-size control.
+- Added transparent fish-only post-processing for Terminal, Koi tiles, 1-bit dither, Halftone, Mosaic, Cyber, Gameboy, and Amber.
+- None restores the unfiltered koi appearance; all presets apply to all three koi.
+- Removed depth-driven palette shifts so normal koi colors remain stable.
+- Fixed pointer-target expiry: koi continue gathering and hovering around a stationary cursor until pointer leave.
+- Added iterative soft-body collision resolution and velocity deflection to prevent koi crossing through one another.
+- Added a white-circle fish favicon and responsive keyboard-accessible preset controls.
+- Audited desktop/mobile rendering, transparency, overflow, console errors, effects, slider, collision, targeting, and build output.

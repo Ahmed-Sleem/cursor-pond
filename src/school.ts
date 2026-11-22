@@ -30,6 +30,7 @@ export class School {
   private random = new XorShift32();
   private target = vec(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.5);
   private targetAge = 0;
+  private persistentTarget = false;
 
   public constructor() {
     this.fish.forEach((fish, index) => fish.reset(index, this.random));
@@ -91,6 +92,7 @@ export class School {
   }
 
   public callTo(point: Vec2): void {
+    this.persistentTarget = false;
     this.target = { ...point };
     this.targetActive = true;
     this.targetAge = 0;
@@ -113,6 +115,7 @@ export class School {
   }
 
   public follow(point: Vec2): void {
+    this.persistentTarget = true;
     this.target = { ...point };
     this.targetActive = true;
     this.targetAge = 0;
@@ -130,6 +133,7 @@ export class School {
   }
 
   public releaseTarget(): void {
+    this.persistentTarget = false;
     this.targetActive = false;
   }
 
@@ -148,6 +152,7 @@ export class School {
     this.targetAge += dt;
     if (
       this.targetActive &&
+      !this.persistentTarget &&
       this.targetAge > FISH.callResponse.targetLifetimeSeconds
     ) {
       this.targetActive = false;
@@ -178,6 +183,43 @@ export class School {
       const fish = this.fish[index];
       this.integrate(fish, desired[index], desiredSpeed[index], dt);
     }
+    this.resolveCollisions();
+  }
+
+  private resolveCollisions(): void {
+    // Resolve broad body discs after integration so koi can touch and deflect,
+    // but never visually pass through one another.
+    for (let pass = 0; pass < 3; pass += 1) {
+      for (let first = 0; first < this.count; first += 1) {
+        for (let second = first + 1; second < this.count; second += 1) {
+          const a = this.fish[first], b = this.fish[second];
+          const offset = sub(b.position, a.position);
+          const distance = length(offset);
+          const minimum = Math.max(
+            34,
+            (a.bodyLength + b.bodyLength) * .34,
+            (a.bodyWidth + b.bodyWidth) * 1.5,
+          );
+          if (distance >= minimum) continue;
+          const normal = normalize(offset, fromAngle(a.heading + Math.PI * 0.5));
+          const correction = (minimum - distance) * .52;
+          this.shiftFish(a, mul(normal, -correction));
+          this.shiftFish(b, mul(normal, correction));
+          const approach = (b.velocity.x - a.velocity.x) * normal.x + (b.velocity.y - a.velocity.y) * normal.y;
+          if (approach < 0) {
+            const impulse = -approach * .46;
+            a.velocity = add(a.velocity, mul(normal, -impulse));
+            b.velocity = add(b.velocity, mul(normal, impulse));
+          }
+        }
+      }
+    }
+  }
+
+  private shiftFish(fish: Koi, shift: Vec2): void {
+    fish.position = add(fish.position, shift);
+    for (const node of fish.spine) { node.x += shift.x; node.y += shift.y; }
+    for (const node of fish.renderSpine) { node.x += shift.x; node.y += shift.y; }
   }
 
   private updateDepth(fish: Koi, dt: number): void {

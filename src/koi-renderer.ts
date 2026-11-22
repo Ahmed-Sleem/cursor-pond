@@ -3,39 +3,42 @@ import { FISH, KOI_PALETTES, KOI_PATTERNS, SPINE_NODES, type KoiPalette } from '
 import { Koi, SwimState } from './koi';
 import { add, fromAngle, lerp, mul, normalize, perpendicular, sub, type Vec2 } from './math';
 import { School } from './school';
+import { applyFishEffect, type FishPreset } from './effects';
 
 function pathTriangle(ctx: CanvasRenderingContext2D, a: Vec2, b: Vec2, c: Vec2): void {
   ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath(); ctx.fill();
 }
 
-function mixColor(hex: string, depth: number): string {
-  const value = Number.parseInt(hex.slice(1), 16);
-  const source = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-  const range = Math.max(FISH.depth.visualEnd - FISH.depth.visualStart, 0.001);
-  const linear = Math.max(0, Math.min(1, (depth - FISH.depth.visualStart) / range));
-  const amount = linear * linear * (3 - 2 * linear);
-  const brightness = 1 + (FISH.depth.deepBrightness - 1) * amount;
-  const saturation = 1 + (FISH.depth.deepSaturation - 1) * amount;
-  const luminance = source[0] * .2126 + source[1] * .7152 + source[2] * .0722;
-  const rgb = source.map((channel, index) => Math.round(Math.max(0, Math.min(255,
-    (luminance + (channel - luminance) * saturation) * brightness *
-    (1 + (FISH.depth.deepWaterTint[index] - 1) * amount),
-  ))));
-  return `rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`;
-}
+// Appearance remains stable while depth continues to influence movement.
+const stableColor = (hex: string): string => hex;
 
 export class KoiRenderer {
+  private readonly displayContext: CanvasRenderingContext2D;
+  private readonly sceneCanvas = document.createElement('canvas');
   private readonly context: CanvasRenderingContext2D;
+  private dpr = 1;
+  private preset: FishPreset = 'none';
+  private cellSize = 10;
 
   public constructor(public readonly canvas: HTMLCanvasElement) {
-    const context = canvas.getContext('2d', { alpha: true });
-    if (!context) throw new Error('Canvas 2D is unavailable.');
+    const displayContext = canvas.getContext('2d', { alpha: true });
+    const context = this.sceneCanvas.getContext('2d', { alpha: true });
+    if (!displayContext || !context) throw new Error('Canvas 2D is unavailable.');
+    this.displayContext = displayContext;
     this.context = context;
   }
 
+  public setEffect(preset: FishPreset, cellSize: number): void {
+    this.preset = preset;
+    this.cellSize = cellSize;
+  }
+
   public resize(cssWidth: number, cssHeight: number, dpr: number): void {
+    this.dpr = dpr;
     this.canvas.width = Math.round(cssWidth * dpr);
     this.canvas.height = Math.round(cssHeight * dpr);
+    this.sceneCanvas.width = this.canvas.width;
+    this.sceneCanvas.height = this.canvas.height;
     this.canvas.style.width = `${cssWidth}px`;
     this.canvas.style.height = `${cssHeight}px`;
     this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -53,6 +56,15 @@ export class KoiRenderer {
       this.drawKoi(fish, KOI_PALETTES[index % KOI_PALETTES.length], index);
     }
     ctx.restore();
+    applyFishEffect(
+      this.sceneCanvas,
+      this.displayContext,
+      this.canvas.clientWidth,
+      this.canvas.clientHeight,
+      this.dpr,
+      this.preset,
+      this.cellSize,
+    );
   }
 
   private buildRenderSpine(fish: Koi): void {
@@ -75,8 +87,8 @@ export class KoiRenderer {
   private drawKoi(fish: Koi, palette: KoiPalette, appearanceIndex: number): void {
     const ctx = this.context, left: Vec2[] = [], right: Vec2[] = [];
     const colors = {
-      base: mixColor(palette.base, fish.depth), accent: mixColor(palette.accent, fish.depth),
-      marking: mixColor(palette.marking, fish.depth), fin: mixColor(palette.fin, fish.depth), eye: mixColor(palette.eye, fish.depth),
+      base: stableColor(palette.base), accent: stableColor(palette.accent),
+      marking: stableColor(palette.marking), fin: stableColor(palette.fin), eye: stableColor(palette.eye),
     };
     for (let node = 0; node < SPINE_NODES; node += 1) {
       const previous = Math.max(0, node - 1), next = Math.min(SPINE_NODES - 1, node + 1);

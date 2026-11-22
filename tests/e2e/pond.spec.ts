@@ -7,7 +7,9 @@ test('renders only the three-koi canvas with no UI or pond layers', async ({ pag
   await page.goto('/');
   await expect(page.locator('canvas#pond')).toBeVisible();
   await expect(page.locator('canvas')).toHaveCount(1);
-  await expect(page.locator('button,input,select,nav,header,aside,audio,video')).toHaveCount(0);
+  await expect(page.locator('nav.glass-menu')).toBeVisible();
+  await expect(page.locator('#presets button')).toHaveCount(9);
+  await expect(page.locator('aside,audio,video')).toHaveCount(0);
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await page.waitForTimeout(500);
   const alphaPixels = await page.locator('#pond').evaluate((canvas: HTMLCanvasElement) => {
@@ -19,6 +21,22 @@ test('renders only the three-koi canvas with no UI or pond layers', async ({ pag
   });
   expect(alphaPixels).toBeGreaterThan(100);
   expect(errors).toEqual([]);
+});
+
+test('applies Glyphmix presets, cell sizing, and restores normal rendering', async ({ page }) => {
+  await page.goto('/');
+  const canvas = page.locator('#pond');
+  await page.waitForTimeout(400);
+  const normal = await canvas.screenshot();
+  await page.getByRole('radio', { name: /Terminal/ }).click();
+  await page.locator('#cell-size').fill('18');
+  await page.waitForTimeout(100);
+  const terminal = await canvas.screenshot();
+  expect(terminal.equals(normal)).toBe(false);
+  await expect(page.locator('#cell-output')).toHaveValue('18');
+  await page.getByRole('radio', { name: /None/ }).click();
+  await expect(page.getByRole('radio', { name: /None/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', './favicon.svg');
 });
 
 test('responds to pointer movement and remains viewport-fitted', async ({ page }) => {

@@ -5,10 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="description" content="Three procedurally animated koi that follow your cursor.">
   <meta name="theme-color" content="#f6f4ef">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <title>Cursor Pond</title>
 </head>
 <body>
   <main id="app" aria-label="Three animated koi follow the pointer">
+    <nav class="glass-menu" aria-label="Fish appearance">
+      <div class="fish-mark" aria-hidden="true">🐟</div>
+      <div id="presets" class="preset-strip" role="radiogroup" aria-label="Glyphmix presets"></div>
+      <label class="cell-control" for="cell-size">
+        <span>Cell size</span>
+        <input id="cell-size" type="range" min="4" max="22" value="10" step="1">
+        <output id="cell-output" for="cell-size">10</output>
+      </label>
+    </nav>
     <canvas id="pond" aria-label="Three procedurally animated koi fish"></canvas>
   </main>
   <script type="module" src="/src/main.ts"></script>

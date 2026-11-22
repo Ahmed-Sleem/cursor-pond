@@ -2,6 +2,7 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH, FIXED_STEP, setCanvasSize } from './config';
 import { KoiRenderer } from './koi-renderer';
 import { School } from './school';
+import { PRESETS, type FishPreset } from './effects';
 import './styles.css';
 
 const canvasElement = document.querySelector<HTMLCanvasElement>('#pond');
@@ -10,6 +11,35 @@ const canvas: HTMLCanvasElement = canvasElement;
 
 const school = new School();
 const renderer = new KoiRenderer(canvas);
+const presetStripElement = document.querySelector<HTMLDivElement>('#presets');
+const cellInputElement = document.querySelector<HTMLInputElement>('#cell-size');
+const cellOutputElement = document.querySelector<HTMLOutputElement>('#cell-output');
+if (!presetStripElement || !cellInputElement || !cellOutputElement) throw new Error('Missing appearance controls.');
+const presetStrip: HTMLDivElement = presetStripElement;
+const cellInput: HTMLInputElement = cellInputElement;
+const cellOutput: HTMLOutputElement = cellOutputElement;
+let activePreset: FishPreset = 'none';
+let cellSize = Number(cellInput.value);
+
+function applyAppearance(): void {
+  renderer.setEffect(activePreset, cellSize);
+  cellOutput.value = String(cellSize);
+  presetStrip.querySelectorAll<HTMLButtonElement>('button').forEach(button => {
+    const selected = button.dataset.preset === activePreset;
+    button.setAttribute('aria-checked', String(selected));
+    button.classList.toggle('active', selected);
+  });
+}
+
+for (const preset of PRESETS) {
+  const button = document.createElement('button');
+  button.type = 'button'; button.dataset.preset = preset.id; button.setAttribute('role', 'radio');
+  button.innerHTML = `<span aria-hidden="true">${preset.icon}</span>${preset.label}`;
+  button.addEventListener('click', () => { activePreset = preset.id; applyAppearance(); });
+  presetStrip.appendChild(button);
+}
+cellInput.addEventListener('input', () => { cellSize = Number(cellInput.value); applyAppearance(); });
+applyAppearance();
 let width: number = CANVAS_WIDTH, height: number = CANVAS_HEIGHT, last = performance.now(), accumulator = 0, elapsed = 0, frame = 0;
 let releaseTimer = 0;
 
