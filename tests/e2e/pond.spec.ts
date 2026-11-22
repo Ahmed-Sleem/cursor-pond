@@ -34,6 +34,8 @@ test('applies Glyphmix presets, cell sizing, and restores normal rendering', asy
   const terminal = await canvas.screenshot();
   expect(terminal.equals(normal)).toBe(false);
   await expect(page.locator('#cell-output')).toHaveValue('18');
+  await page.locator('#fish-size').fill('140');
+  await expect(page.locator('#size-output')).toHaveText('140%');
   await page.getByRole('radio', { name: /None/ }).click();
   await expect(page.getByRole('radio', { name: /None/ })).toHaveAttribute('aria-checked', 'true');
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', './favicon.svg');

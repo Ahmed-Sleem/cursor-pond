@@ -44,6 +44,16 @@ describe('big-koi school extraction', () => {
     }
   });
 
+  it('scales fish bodies without changing the fish count', () => {
+    const school = new School();
+    const original = school.fish[0].bodyLength;
+    school.setFishScale(1.4);
+    expect(school.fish[0].bodyLength).toBeCloseTo(original * 1.4);
+    school.setFishScale(.8);
+    expect(school.fish[0].bodyLength).toBeCloseTo(original * .8);
+    expect(school.count).toBe(3);
+  });
+
   it('scales fish positions and spines without resetting their state', () => {
     const school = new School();
     const before = { ...school.fish[0].position };

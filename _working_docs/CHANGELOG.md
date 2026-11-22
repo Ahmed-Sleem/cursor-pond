@@ -11,3 +11,7 @@
 - Added glass preset toolbar, Glyphmix effects, None option, and cell-size slider.
 - Stabilized koi colors, strengthened cursor hovering, and added body collision response.
 - Added fish favicon.
+
+## 2026-11-22 — Cursor response and sizing
+- Koi follow the cursor more aggressively.
+- Added fish-size slider.

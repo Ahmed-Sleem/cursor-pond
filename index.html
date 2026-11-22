@@ -13,11 +13,18 @@
     <nav class="glass-menu" aria-label="Fish appearance">
       <div class="fish-mark" aria-hidden="true">🐟</div>
       <div id="presets" class="preset-strip" role="radiogroup" aria-label="Glyphmix presets"></div>
-      <label class="cell-control" for="cell-size">
-        <span>Cell size</span>
-        <input id="cell-size" type="range" min="4" max="22" value="10" step="1">
-        <output id="cell-output" for="cell-size">10</output>
-      </label>
+      <div class="menu-sliders">
+        <label class="cell-control" for="cell-size">
+          <span>Cell size</span>
+          <input id="cell-size" type="range" min="4" max="22" value="10" step="1">
+          <output id="cell-output" for="cell-size">10</output>
+        </label>
+        <label class="size-control" for="fish-size">
+          <span>Fish size</span>
+          <input id="fish-size" type="range" min="65" max="170" value="100" step="5">
+          <output id="size-output" for="fish-size">100%</output>
+        </label>
+      </div>
     </nav>
     <canvas id="pond" aria-label="Three procedurally animated koi fish"></canvas>
   </main>

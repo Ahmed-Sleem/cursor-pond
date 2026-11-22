@@ -22,3 +22,8 @@
 - Added iterative soft-body collision resolution and velocity deflection to prevent koi crossing through one another.
 - Added a white-circle fish favicon and responsive keyboard-accessible preset controls.
 - Audited desktop/mobile rendering, transparency, overflow, console errors, effects, slider, collision, targeting, and build output.
+
+## 2026-11-22 — Stronger following and fish-size control
+- Increased target pull, chase boost, and sustained cursor urgency for all three personalities.
+- Added a 65–170% fish-size slider that scales all three koi while preserving count, behavior, and collision handling.
+- Verified six unit tests and six desktop/mobile browser tests.

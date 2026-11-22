@@ -14,10 +14,14 @@ const renderer = new KoiRenderer(canvas);
 const presetStripElement = document.querySelector<HTMLDivElement>('#presets');
 const cellInputElement = document.querySelector<HTMLInputElement>('#cell-size');
 const cellOutputElement = document.querySelector<HTMLOutputElement>('#cell-output');
-if (!presetStripElement || !cellInputElement || !cellOutputElement) throw new Error('Missing appearance controls.');
+const sizeInputElement = document.querySelector<HTMLInputElement>('#fish-size');
+const sizeOutputElement = document.querySelector<HTMLOutputElement>('#size-output');
+if (!presetStripElement || !cellInputElement || !cellOutputElement || !sizeInputElement || !sizeOutputElement) throw new Error('Missing appearance controls.');
 const presetStrip: HTMLDivElement = presetStripElement;
 const cellInput: HTMLInputElement = cellInputElement;
 const cellOutput: HTMLOutputElement = cellOutputElement;
+const sizeInput: HTMLInputElement = sizeInputElement;
+const sizeOutput: HTMLOutputElement = sizeOutputElement;
 let activePreset: FishPreset = 'none';
 let cellSize = Number(cellInput.value);
 
@@ -39,6 +43,11 @@ for (const preset of PRESETS) {
   presetStrip.appendChild(button);
 }
 cellInput.addEventListener('input', () => { cellSize = Number(cellInput.value); applyAppearance(); });
+sizeInput.addEventListener('input', () => {
+  const percent = Number(sizeInput.value);
+  school.setFishScale(percent / 100);
+  sizeOutput.value = `${percent}%`;
+});
 applyAppearance();
 let width: number = CANVAS_WIDTH, height: number = CANVAS_HEIGHT, last = performance.now(), accumulator = 0, elapsed = 0, frame = 0;
 let releaseTimer = 0;

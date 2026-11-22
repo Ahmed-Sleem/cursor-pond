@@ -31,6 +31,7 @@ export class School {
   private target = vec(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.5);
   private targetAge = 0;
   private persistentTarget = false;
+  private fishScale = 1;
 
   public constructor() {
     this.fish.forEach((fish, index) => fish.reset(index, this.random));
@@ -38,6 +39,16 @@ export class School {
 
   public setCount(count: number): void {
     this.count = clamp(Math.round(count), 1, MAX_FISH);
+  }
+
+  public setFishScale(scale: number): void {
+    const next = clamp(scale, 0.65, 1.7);
+    const ratio = next / this.fishScale;
+    this.fishScale = next;
+    for (const fish of this.fish) {
+      fish.bodyLength *= ratio;
+      fish.bodyWidth *= ratio;
+    }
   }
 
   public updateBodyProportions(previous: {
@@ -420,7 +431,7 @@ export class School {
       const personality = index % 3;
       const orbitRadius = [22, 72, 118][personality];
       const orbitSpeed = [0.34, -0.58, 0.22][personality];
-      const targetPull = [2.6, 1.75, 0.9][personality];
+      const targetPull = [4.6, 3.35, 2.15][personality];
       const orbitPoint = add(
         this.target,
         mul(
@@ -457,7 +468,7 @@ export class School {
       fish.callResponseAge < chaseDuration;
     if (chasing) {
       const chaseFade = 1 - clamp(fish.callResponseAge / chaseDuration, 0, 1);
-      const personalityBoost = [1, 0.78, 0.5][index % 3];
+      const personalityBoost = [1.35, 1.08, 0.82][index % 3];
       return (
         fish.maximumSpeed *
         (1 +
@@ -470,7 +481,7 @@ export class School {
     if (this.targetActive && fish.callDelay <= 0) {
       const distance = length(sub(this.target, fish.position));
       const urgency = clamp(distance / 105, 0.2, 1);
-      const personalityUrgency = [1, 0.72, 0.42][index % 3];
+      const personalityUrgency = [1.35, 1.05, 0.78][index % 3];
       intention =
         fish.cruiseSpeed +
         (fish.maximumSpeed - fish.cruiseSpeed) * urgency * personalityUrgency;
